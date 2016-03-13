@@ -10,7 +10,7 @@ if __name__ == "__main__" and not __package__:
     del relative_import_helper
 
 
-import collections, itertools, math#, random,
+import collections, itertools, math
 from decimal import Decimal
 
 #from ._Naturales      import esCuadradoPerfecto
