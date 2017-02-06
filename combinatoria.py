@@ -1,67 +1,77 @@
-""" 
+"""
 Módulo de Números Naturales, submodulo de funciones de teoria combinatoria y de conjuntos
 """
 
 if __name__ == "__main__" and not __package__:
-    print("idle trick")
     from relative_import_helper import relative_import_helper
     __package__ = relative_import_helper(__file__,1)
     del relative_import_helper
+    print("idle trick")
 
 import itertools
-    
-from .errores   import NoEsNumeroNatural, RequiereNumeroNaturalDesdeUno
-from .generales import productoria
+
+from .natural_typing import List, Union, Iterator
+from .errores        import NoEsNumeroNatural, RequiereNumeroNaturalDesdeUno
+from .generales      import productoria
 
 
 __exclude_from_all__=set(dir())
 
 
-def factorial(n:int,m:int=None) -> int:
+def factorial(n:int, m:int=None) -> int:
     """Factorial de n o n!. Si m es dado, calcula n! mod m
        Cuenta todos los posibles arreglos lineales de n objetos"""
     if n >= 0 :
-        if not m:
+        if m is None:
             return productoria( range(1,n+1) )
         else:
             if 0 <= m <= n:
                 return 0
-            resul = 1 % m
-            for x in range(2,n+1):
-                resul = (resul*x) % m
-                if resul==0:
-                    return 0
-            return resul
+            return productoria( range(2,n+1), m=m, start=1%m, zeroCheck=True )
+            #resul = 1 % m
+            #for x in range(2,n+1):
+            #    resul = (resul*x) % m
+            #    if resul==0:
+            #        return 0
+            #return resul
     else:
         raise NoEsNumeroNatural("El objeto no representa un número natural")
 
 
-
-def factorialDescendente(n:int,k:int) -> int:
+def factorialDescendente(n:int, k:int, m:int=None) -> int:
     """Factorial descendente de N con K descensos.
        Cuenta todas las forma de hacer arreglos lineales de longitud K
        con un conjunto de N objetos"""
     if n >= 0 and k >= 0:
-        return productoria( range( (n-k+1),n+1 ) )
+        if k>n:
+            return 0
+        if m is None:
+            return productoria( range( (n-k+1),n+1 ) )
+        else:
+            num = range( (n-k+1),n+1 )
+            if m in num:
+                return 0
+            return productoria( num, m=m, zeroCheck=True )
         #return reduce(lambda x,y: x*y, range((n-k+1),n+1) ,1 )
     else:
         raise NoEsNumeroNatural("El objeto no representa un número natural")
 
 
-
-def factorialAscendente(n:int,k:int) -> int:
+def factorialAscendente(n:int, k:int, m:int=None) -> int:
     """Factorial ascendente de N con K ascensos.
        Cuenta la cantidad de formas de meter N objetos
        en K cajas formando ordenes lineales dentro de las cajas"""
     if n >= 0 and k >= 0:
-        return productoria( range(n,n+k) )
+        num = range(n,n+k)
+        if 0 in num or ( m is not None and m in num):
+            return 0
+        return productoria( num, m=m, zeroCheck=m is not None )
         #return reduce(lambda x,y:x*y, range(n,n+k),1)
     else:
         raise NoEsNumeroNatural("El objeto no representa un número natural")
 
 
-
-def combinatorio(n:int,k:int) -> int:
+def combinatorio(n:int, k:int) -> int:
     """Número combinatorio N en K.
        Cuenta el número de sub-conjuntos de tamaño K de un N-conjunto
        O la cantidad de formas de elegir K objetos de entre N de ellos"""
@@ -76,8 +86,7 @@ def combinatorio(n:int,k:int) -> int:
         raise NoEsNumeroNatural("El objeto no representa un número natural")
 
 
-
-def combinatorioMulticonjunto(n:int,k:int) -> int:
+def combinatorioMulticonjunto(n:int, k:int) -> int:
     """Número combinatorio de multiconjunto N en K.
        Cuenta el número de sub-multi-conjuntos de tamaño K de un N-conjunto
        O la cantidad de formas de elegir K objetos de entre N de ellos con
@@ -88,8 +97,7 @@ def combinatorioMulticonjunto(n:int,k:int) -> int:
         raise NoEsNumeroNatural("El objeto no representa un número natural")
 
 
-
-def cfuerte(n:int,k:int) -> int:
+def cfuerte(n:int, k:int) -> int:
     """Combinaciones fuertes del número N en K pedasos.
        Cuenta la cantidad de soluciones a la ecuación:
          X1+X2+X3+....+Xk = N, para todo Xi>0 y N,K>0
@@ -104,7 +112,7 @@ def cfuerte(n:int,k:int) -> int:
         raise NoEsNumeroNatural("El objeto no representa un número natural")
 
 
-def cdebil(n:int,k:int) -> int:
+def cdebil(n:int, k:int) -> int:
     """Combinaciones débiles del número N en K pedasos.
        Cuenta la cantidad de soluciones a la ecuación:
         X1+X2+X3+...+Xk=N, para todo Xi>=0 y K>0
@@ -117,8 +125,6 @@ def cdebil(n:int,k:int) -> int:
             raise NaturalError("k debe ser mayor o igual que 1")
     else:
         raise NoEsNumeroNatural("El objeto no representa un número natural")
-
-
 
 
 def bell(n:int) -> int:
@@ -147,8 +153,7 @@ def bell(n:int) -> int:
         raise NoEsNumeroNatural("El objeto no representa un número natural")
 
 
-
-def stirling(n:int,k:int,*,lista:bool=False):
+def stirling(n:int, k:int, *, lista:bool=False) -> Union[int,List[int]]:
     """Número de Stirling de segunda especie.
        Cuenta la cantidad de formas de particionar un N-conjunto en K-bloques.
        O cuenta las formas de colocar N objetos diferentes en K cajas
@@ -194,8 +199,8 @@ def stirling(n:int,k:int,*,lista:bool=False):
     else:
         raise NoEsNumeroNatural("El objeto no representa un número natural")
 
-        
-def _fila_pascal(n:int):
+
+def _fila_pascal(n:int) -> Iterator[int]:
     """Generador que da la n-esima fila del triangulo de Pascal"""
     if n >= 0:
         yield 1
@@ -213,18 +218,19 @@ def _fila_pascal(n:int):
     else:
         raise NoEsNumeroNatural("El objeto no representa un número natural")
 
-def triangulo_pascal(n:int=None):
-    """Regresa un generador cuyos elementos son generadores de las filas la n-esima
-       fila del triangulo de pascal
-       
-       Si n es dado regresa un generador con la n-esima fila del triangulo de pascal"""
+def triangulo_pascal(n:int=None) -> Union[ Iterator[int],Iterator[Iterator[int]]] :
+    """Regresa un generador cuyos elementos son generadores de las filas del triangulo de pascal
+
+       Si n es dado regresa un generador con la n-esima fila del triangulo de pascal
+
+       https://www.youtube.com/watch?v=XMriWTvPXHI"""
     if n is not None:
-        return _fila_pascal(n) 
-    return ( _fila_pascal(n) for n in itertools.count(0) )  
-        
-        
-        
-        
-        
-__all__ = list( x for x in dir() if not (x.startswith("_") or x in __exclude_from_all__))
+        return _fila_pascal(n)
+    return ( _fila_pascal(n) for n in itertools.count(0) )
+
+
+
+
+
+__all__ = [ x for x in dir() if not (x.startswith("_") or x in __exclude_from_all__) ]
 del __exclude_from_all__

@@ -4,17 +4,16 @@ Ofrece las principales pruevas de primalidad
 """
 
 if __name__ == "__main__" and not __package__:
-    print("idle trick")
     from relative_import_helper import relative_import_helper
     __package__ = relative_import_helper(__file__,1)
     del relative_import_helper
+    print("idle trick")
 
-
-import collections, itertools, math
+import itertools, math
 from decimal import Decimal
 
-#from ._Naturales      import esCuadradoPerfecto
 
+from .natural_typing      import Union, Iterable
 from .errores             import NoEsNumeroNatural
 from .generales           import isqrt, esCuadradoPerfecto
 from ._secuencias         import sucesiones_de_Lucas
@@ -23,26 +22,15 @@ from .aritmetica_modular  import jacobi_simbol
 from .combinatoria        import triangulo_pascal
 from .generadores_primos  import primos_hasta
 
-SIEVE = 1000 #Para algunas de las pruebas de primalidad, precalcular los primos menores que este número
-             #de modo de aplicar trial division con ellos
-             
-             
+
 __exclude_from_all__=set(dir())
 
+SIEVE = 1000 #Para algunas de las pruebas de primalidad, precalcular los primos menores que este número
+             #de modo de aplicar trial division con ellos
 
 
-def esPrimo(n:int,**karg) -> bool:
-    """Dice si un numero es primo: 2,3,5,7,11...
 
-       Un número es primo si y sólo si es divisible exactamente por sigomismo
-       y el 1(uno).
-
-       Para esta función se elije el mejor test the primalidad que se disponga.
-       Actualmente se usa el test de Baillie-PSW, ver help(primalidad_Test_PSW)
-       para más detalles"""
-    return primalidad_Test_PSW(n,**karg)
-
-def __esPseudoprimoFuerte(n:int,base:int,d:int,s:int) -> bool:
+def __esPseudoprimoFuerte(n:int, base:int, d:int, s:int) -> bool:
     """Chequea:
        base^d = 1 (mod n)
        o
@@ -57,8 +45,8 @@ def __esPseudoprimoFuerte(n:int,base:int,d:int,s:int) -> bool:
             return True
     return False
 
-def esPseudoprimoFuerte(n:int,base:"int o [int]") -> bool:
-    """Determina si el número es un fuerte Pseudo Primo.
+def esPseudoprimoFuerte(n:int, base:Union[int,Iterable[int]] ) -> bool:
+    """Determina si el número es un Pseudo Primo Fuerte.
        Estos son números impares que cumplen con:
        sea d y s numeros tales que n = d * 2^s +1 con d impar
        se cumple que
@@ -77,15 +65,15 @@ def esPseudoprimoFuerte(n:int,base:"int o [int]") -> bool:
 
        https://en.wikipedia.org/wiki/Strong_pseudoprime"""
     if n >= 0:
-        if not n&1 or n<3:
+        if not n&1 or n<3: #si n es par o menor que 3
             return n==2
-        if isinstance(base,collections.abc.Iterable):
+        if isinstance(base,Iterable):
             d,s = factorizacion_ds(n)
             return all(__esPseudoprimoFuerte(n,b,d,s) for b in base)
         elif base >= 0 :
             return __esPseudoprimoFuerte(n,base,*factorizacion_ds(n))
         else:
-            raise NoEsNumeroNatural("El objeto no representa un número natural")
+            raise NoEsNumeroNatural("El objeto no representa un número natural o secuencia de numeros naturales")
     else:
         raise NoEsNumeroNatural("El objeto no representa un número natural")
 
@@ -125,7 +113,10 @@ def __mr_tope(n:int) -> int:
 
 __known_primes = [] #primos_hasta(1000)
 
-def primalidad_Test_MR(n:int,*,precision_for_huge_n:int=42,full_presicion:bool=False,verbose:bool=False) -> bool:
+def primalidad_Test_MR(n:int,*,
+                       precision_for_huge_n:int=42,
+                       full_presicion:bool=False,
+                       verbose:bool=False) -> bool:
     """Miller–Rabin deterministic primality test. Exacto hasta 1.543e33
 
        Este asume como cierto Hipótesis generalizada de Riemann, la cual todavia
@@ -177,20 +168,20 @@ def primalidad_Test_MR(n:int,*,precision_for_huge_n:int=42,full_presicion:bool=F
     if n < 1122004669633:
         return all(__esPseudoprimoFuerte(n, a, d, s) for a in (2, 13, 23, 1662803))
     if n < 2152302898747:
-        return all(__esPseudoprimoFuerte(n, a, d, s) for a in (2, 3, 5, 7, 11))
+        return all(__esPseudoprimoFuerte(n, a, d, s) for a in (2, 3, 5, 7, 11))#primos_hasta(12)
     if n < 3474749660383:
-        return all(__esPseudoprimoFuerte(n, a, d, s) for a in (2, 3, 5, 7, 11, 13))
+        return all(__esPseudoprimoFuerte(n, a, d, s) for a in (2, 3, 5, 7, 11, 13))#primos_hasta(14)
     if n < 341550071728321:
-        return all(__esPseudoprimoFuerte(n, a, d, s) for a in (2, 3, 5, 7, 11, 13, 17))
+        return all(__esPseudoprimoFuerte(n, a, d, s) for a in (2, 3, 5, 7, 11, 13, 17))#primos_hasta(18)
     if n < 3825123056546413051:
-        return all(__esPseudoprimoFuerte(n, a, d, s) for a in (2, 3, 5, 7, 11, 13, 17, 19, 23))
+        return all(__esPseudoprimoFuerte(n, a, d, s) for a in (2, 3, 5, 7, 11, 13, 17, 19, 23))#primos_hasta(24)
     if n < 318665857834031151167461:
-        return all(__esPseudoprimoFuerte(n, a, d, s) for a in (2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37))
+        return all(__esPseudoprimoFuerte(n, a, d, s) for a in (2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37))#primos_hasta(38)
     if n < 3317044064679887385961981:
-        return all(__esPseudoprimoFuerte(n, a, d, s) for a in (2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41))
+        return all(__esPseudoprimoFuerte(n, a, d, s) for a in (2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41))#primos_hasta(42)
     if n < 1543267864443420616877677640751301:#http://mathworld.wolfram.com/StrongPseudoprime.html
         return all(__esPseudoprimoFuerte(n, a, d, s) for a in
-                       (2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67))
+                       (2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67)) #primos_hasta(68)
     # otherwise
     if full_presicion:
         #asumiendo la Hipótesis generalizada de Riemann
@@ -204,7 +195,7 @@ def primalidad_Test_MR(n:int,*,precision_for_huge_n:int=42,full_presicion:bool=F
     return all(__esPseudoprimoFuerte(n, a, d, s) for a in __known_primes[:precision_for_huge_n])
 
 
-def primalidad_Test_PSW(n:int,*,verbose=False) -> bool:
+def primalidad_Test_PSW(n:int,*,verbose:bool=False) -> bool:
     """Baillie-PSW primality test
        https://en.wikipedia.org/wiki/Baillie%E2%80%93PSW_primality_test
        https://www.youtube.com/watch?v=jbiaz_aHHUQ
@@ -280,22 +271,20 @@ def __primalidad_Test_LLT(p:int) -> bool:
         #The same strategy is used in modular exponentiation.
     return s==0
 
-def primalidad_Test_LLT(p:int) -> bool:
+def primalidad_Test_LLT(p:int, *, prime_check:bool=True) -> bool:
     """Lucas–Lehmer primality test. Determina si Mp = 2^p − 1 es primo.
        en.wikipedia.org/wiki/Lucas%E2%80%93Lehmer_primality_test"""
-    if esPrimo(p):
+    if not prime_check or esPrimo(p):
         return __primalidad_Test_LLT(p)
     else:
         return False
 
 
-def primalidad_Test_AKS(n:int,*,verbose=False,ies=10,progress_bar=None) -> bool:
-    """
+def primalidad_Test_AKS(n:int,*,verbose=False,ies:int=10,progress_bar:"tqdm"=None) -> bool:
+    """AKS primality test, version binomial
     https://en.wikipedia.org/wiki/AKS_primality_test
     https://www.youtube.com/watch?v=HvMSRWTE2mI
-    http://www.cse.iitk.ac.in/users/manindra/algebra/primality_v6.pdf
-    https://en.wikipedia.org/wiki/AKS_primality_test
-    version binomial"""
+    http://www.cse.iitk.ac.in/users/manindra/algebra/primality_v6.pdf"""
     if n >= 0 :
         if verbose:
             print("probando casos bases",flush=True)
@@ -330,7 +319,32 @@ def primalidad_Test_AKS(n:int,*,verbose=False,ies=10,progress_bar=None) -> bool:
         raise NoEsNumeroNatural
 
 
+__algoritmos ={
+    "PSW":   primalidad_Test_PSW,
+    "MR":    primalidad_Test_MR,
+    "Trial": primalidad_Test_Trial_Division
+    }
+
+def esPrimo(n:int,*,test="PSW",**karg) -> bool:
+    """Dice si un numero es primo: 2,3,5,7,11...
+
+       Un número es primo si y sólo si es divisible exactamente por sigomismo
+       y el 1(uno).
+
+       Para esta función se elije el mejor test the primalidad que se disponga.
+       Actualmente se usa el test de Baillie-PSW, ver help(primalidad_Test_PSW)
+       para más detalles
+
+       Los test disponibles son
+       "PSW": Baillie-PSW primality test
+       "MR" : Miller–Rabin deterministic primality test
+       "Trial": Trial Division
+       """
+    if test in __algoritmos:
+        return __algoritmos[test](n,**karg)
+    else:
+        raise ValueError( "Test desconocido, los test disponibles son: "+", ".join(map(repr,__algoritmos) ) )
 
 
-__all__ = list( x for x in dir() if not (x.startswith("_") or x in __exclude_from_all__))
+__all__ = [ x for x in dir() if not (x.startswith("_") or x in __exclude_from_all__) ]
 del __exclude_from_all__

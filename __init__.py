@@ -11,7 +11,26 @@ primos y funciones que dependen de ello como la indicatris de Euler (totient) y
 el radical, factoriales y números combinatorios y de Stirling, funciones
 más especialisadas como la Moebius, Carmichael, Liouville."""
 
-version = 10
+version = 12
+
+from . import errores
+#from . import natural_typing
+#from . import matriz_vector
+#from . import numeroFactorizado
+#from . import _secuencias
+from . import generales
+from . import combinatoria
+from . import generadores_primos
+from . import aritmetica_modular
+from . import factorizacion
+from . import primalidad_test
+from . import clasificaciones
+from . import primalidad_test_otros
+from . import primos
+from . import secuencias
+from . import funciones
+from .generadores_primos_sieve import sieve
+from .clasificaciones import esPrimo
 
 ################################################################################
 # version 4:
@@ -48,80 +67,80 @@ version = 10
 # version 10:
 # -separacion en submodulos
 #
+# version 11:
+# -añadido submodulo natural_typing para todo lo relacionado con las
+#  firmas de las funciones, y actualisadas todas las firmas de funciones
+#  usando este modulo
+# -funciones en el submodulo de clasificaciones con parametro "valor" ahora
+#  arrojan ValueError en lugar de None cuando dicho valor no existe
+#
+# version 12
+# -añadido calculo de raices n-esimas solo con aritmetica entera
+#
+#
 ################################################################################
 
 
-__exclude_from_all__=set(dir())
+#__exclude_from_all__=set(dir())
 
-from . import errores
-from . import matriz_vector
-from . import numeroFactorizado
-from . import generales
-from . import combinatoria
-from . import generadores_primos
-from . import aritmetica_modular
-from . import factorizacion
-from . import primalidad_test
-from . import clasificaciones
-from . import primalidad_test_otros
-from . import primos
-from . import secuencias
-from . import funciones
+
 
         
-__all__ = list( x for x in dir() if not (x.startswith("_") or x in __exclude_from_all__))
-del __exclude_from_all__
+#__all__ = [ x for x in dir() if not (x.startswith("_") or x in __exclude_from_all__) ]
+#del __exclude_from_all__
 
-gerarquia="""
+##gerarquia="""
+##
+##
+##if __name__ == "__main__" and not __package__:
+##    print("idle trick")
+##    from relative_import_helper import relative_import_helper
+##    __package__ = relative_import_helper(__file__,1)
+##    del relative_import_helper
+##
+##matriz_vector 
+##    _secuencias
+##natural_typing    
+##errores 
+##    _secuencias
+##        primalidad_test, primalidad_test_otros
+##            primos
+##                secuencias
+##    generales
+##        combinatoria
+##            primalidad_test, primalidad_test_otros
+##                primos
+##                    secuencias
+##        generadores_primos
+##            aritmetica_modular, factorizacion 
+##                primalidad_test
+##                    clasificaciones
+##                        primalidad_test_otros
+##                            primos
+##                                secuencias
+##                                funciones
+##
+##            
+##-------------------------------------------------    
+###aritmetica_modular.py
+###combinatoria.py
+###errores.py
+###factorizacion.py
+###generadores_primos.py
+###generales.py
+###matriz_vector.py
+###_secuencias.py
+###clasificaciones
+###primalidad_test
+###primalidad_test_otros
+###primos.py
+###secuencias.py
+###funciones.py
+##
+##numeros.py
+##
+##_Naturales.py
+##
+##
+##"""
 
-
-if __name__ == "__main__" and not __package__:
-    print("idle trick")
-    from relative_import_helper import relative_import_helper
-    __package__ = relative_import_helper(__file__,1)
-    del relative_import_helper
-
-matriz_vector 
-    _secuencias
-errores 
-    _secuencias
-        primalidad_test, primalidad_test_otros
-            primos
-                secuencias
-    generales
-        combinatoria
-            primalidad_test, primalidad_test_otros
-                primos
-                    secuencias
-        generadores_primos
-            aritmetica_modular, factorizacion 
-                primalidad_test
-                    clasificaciones
-                        primalidad_test_otros
-                            primos
-                                secuencias
-                                funciones
-
-            
--------------------------------------------------    
-#aritmetica_modular.py
-#combinatoria.py
-#errores.py
-#factorizacion.py
-#generadores_primos.py
-#generales.py
-#matriz_vector.py
-#_secuencias.py
-#clasificaciones
-#primalidad_test
-#primalidad_test_otros
-#primos.py
-#secuencias.py
-#funciones.py
-
-numeros.py
-
-_Naturales.py
-
-
-"""

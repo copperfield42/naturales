@@ -14,3 +14,11 @@ class NoEsNumeroNatural(ValueError):
 class RequiereNumeroNaturalDesdeUno(ValueError):
     """Esta función sólo acepta números naturales mayores o iguales a 1"""
     pass
+        
+class NoInversaModularError(ZeroDivisionError):
+    """El número no tiene inversa modular"""
+    pass
+
+class NoEsAntiPrimoError(ValueError):
+    """El número no cumple con las condiciones de anti-primo"""
+    pass

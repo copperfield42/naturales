@@ -4,18 +4,17 @@ Ofrece variedad de pruevas de primalidad y generadores de numeros primos
 """
 
 if __name__ == "__main__" and not __package__:
-    print("idle trick")
     from relative_import_helper import relative_import_helper
     __package__ = relative_import_helper(__file__,1)
     del relative_import_helper
+    print("idle trick")
 
 
-import itertools, math 
+import itertools, math
 
-
-#from ._Naturales      import *
+from .natural_typing      import Iterator, Tuple
 from .errores             import NoEsNumeroNatural, RequiereNumeroNaturalDesdeUno
-from .generales           import productoria, isqrt, esPar, esNatural
+from .generales           import productoria, isqrt, esPar, esNatural, ilen
 from .aritmetica_modular  import mcd, coprimos
 from ._secuencias         import mersenne
 
@@ -34,14 +33,13 @@ from .factorizacion      import factoresPrimos
 ################################################################################
 
 
-def contarPrimos(n) -> int:
+def contarPrimos(n:int) -> int:
     """Cuenta la cantidad real de primos menores que n"""
-    resul = 0
-    for resul,p in enumerate( primos_hasta(n),1): pass
-    return resul
+    return ilen(primos_hasta(n))
 
 
-def estimar_cantidad_primos(n:int) -> (int,int):
+
+def estimar_cantidad_primos(n:int) -> Tuple[int,int]:
     """Estimado de la cantidad de primos en [0,n]
        Regresa una tupla (m,M) tal que el valor real P estara en m < P < M
        con P el valor real de la cantidad de primos.
@@ -61,7 +59,7 @@ def estimar_cantidad_primos(n:int) -> (int,int):
         return math.floor(minimo) , math.ceil(maximo)
 
 
-def estimar_nesimo_primo(n:int) -> (int,int):
+def estimar_nesimo_primo(n:int) -> Tuple[int,int]:
     """Funcion que estima el valor del n-esimo primo.
        Regresa una tupla (m,M) tal que el valor real estara en m < P < M
        con P el valor real del primos."""
@@ -80,16 +78,7 @@ def estimar_nesimo_primo(n:int) -> (int,int):
         NoEsNumeroNatural("El objeto no representa un número natural")
 
 
-def sonGemelos(a:int,b:int) -> bool:
-    """Dice si dos números son primos gemelos
-       Un número es Gemelo si ambos son primos
-       y uno es 2 unidades menor o mayor que el otro"""
-    return (a==b+2 or a==b-2) and esPrimo(a) and esPrimo(b)
 
-
-def sonPrimosN(a:int,b:int,n:int=2):
-    """Dice si a y b estan separados n unidades y son primos ambos"""
-    return (a==b+n or a==b-n) and esPrimo(a) and esPrimo(b)
 
 ################################################################################
 ## ----------------------- Generadores de números Primos -----------------------
@@ -104,7 +93,7 @@ __wheels = { 30:(7,
                  )
             }
 
-def get_wheel(W:int,*,recordar=True) -> (int,frozenset,frozenset,tuple,int):
+def get_wheel(W:int,*,recordar:bool=True) -> Tuple[int,frozenset,frozenset,tuple,int]:
     """Regresa una tupla (M,Fact_w,Mod_w,Mask_w,step)
        Donde 'Fact_w' son los factores primos de W
        'Mod_w' son los coprimos de W
@@ -127,7 +116,7 @@ def get_wheel(W:int,*,recordar=True) -> (int,frozenset,frozenset,tuple,int):
             __wheels[W] = (M,Skip,MOD,MASK,step)
         return M,Skip,MOD,MASK,step
 
-def sieve_wheel_N_LB(L,B,W=30,*,recordar=True):
+def sieve_wheel_N_LB(L:int,B:int,W:int=30,*,recordar:bool=True) -> Iterator[int]:
     """Wheel Sieve de para encontra todos los primos en [ W*L, W*(L+B) ]
        Regresa los resultados desordenadamente"""
     #www.ams.org/journals/mcom/2004-73-246/S0025-5718-03-01501-1/S0025-5718-03-01501-1.pdf
@@ -152,25 +141,26 @@ def sieve_wheel_N_LB(L,B,W=30,*,recordar=True):
         yield from ( W*k + d for k,v in A.items() if v )
 
 
-def mersenne_prime_base():
-    """Regresa una lista con los números primos p tales que 2^p -1 es primo.
+def mersenne_prime_base() -> Iterator[int] :
+    """Regresa un generador con los números primos p tales que 2^p -1 es primo.
        Osea los p que producen Mersenne Primes
 
        Se usa el Lucas–Lehmer primality test para generar esta lista."""
     return filter(primalidad_test.__primalidad_Test_LLT,primos())
 
 
-def mersenne_prime():
+def mersenne_prime() -> Iterator[int]:
     """Generador de Mersenne Primes.
        Un Mersenne Primes son los números primos de la forma (2^p) -1
        para algun número primo p.
 
        Se usa el Lucas–Lehmer primality test para generar esta lista."""
-    return ( mersenne(p) for p in mersenne_prime_base() )
-    
-    
+    return map( mersenne, mersenne_prime_base() )
+    #return ( mersenne(p) for p in mersenne_prime_base() )
 
-def primordial(n):
+
+
+def primordial(n:int) -> int :
     """Función que calcula el número primordial.
        Este número es la productoria de todos los primos
        menores o iguales que n"""
@@ -180,14 +170,14 @@ def primordial(n):
         raise NoEsNumeroNatural("El objeto no representa un número natural")
 
 
-def _gcd_relation():
+def _gcd_relation() -> Iterator[int]:
     resul = 7
     for n in itertools.count(2):
         yield resul
         resul = resul + mcd(n,resul)
 
 
-def gcd_primes(unos:int=False):
+def gcd_primes(unos:int=False) -> Iterator[int]:
     """en.wikipedia.org/wiki/Formula_for_primes"""
     seq = _gcd_relation()
     resul = next(seq)

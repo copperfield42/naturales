@@ -4,15 +4,16 @@ Ofrece variedad de generadores de número primos
 """
 
 if __name__ == "__main__" and not __package__:
-    print("idle trick")
     from relative_import_helper import relative_import_helper
     __package__ = relative_import_helper(__file__,1)
     del relative_import_helper
-
+    print("idle trick")
 
 import itertools
-from .generales import isqrt
-from .errores   import NoEsNumeroNatural
+
+from .natural_typing    import Iterator
+from .generales         import isqrt
+from .errores           import NoEsNumeroNatural
 
 __exclude_from_all__=set(dir())
 
@@ -21,7 +22,7 @@ __exclude_from_all__=set(dir())
 ## ----------------------- Generadores de números Primos -----------------------
 ################################################################################
 
-def primos():
+def primos() -> Iterator[int]:
     """Generador de todos los números primos"""
     #http://stackoverflow.com/questions/2211990/how-to-implement-an-efficient-infinite-generator-of-prime-numbers-in-python/10733621#10733621
     #postponed_sieve by Will Ness
@@ -42,12 +43,15 @@ def primos():
             multiplos = itertools.count(Marca + 2*p,2*p)  # 15,...
             p = next(ps)  #p=5,...
             Marca = p**2  # =25,...
-        for m in multiplos:
-            if m not in Compuestos:
-                break
+        m = next( m for m in multiplos if m not in Compuestos )
         Compuestos[m] = multiplos #15,...
 
-def primos_hasta(n:int):
+##        for m in multiplos:
+##            if m not in Compuestos:
+##                break
+##        Compuestos[m] = multiplos #15,...
+
+def primos_hasta(n:int) -> Iterator[int]:
     """Generador de todos los números primos menores que n"""
     #http://stackoverflow.com/questions/2211990/how-to-implement-an-efficient-infinite-generator-of-prime-numbers-in-python/10733621#10733621
     #erat3 by tzot
@@ -65,16 +69,17 @@ def primos_hasta(n:int):
                if sq < n:
                    Compuestos[sq]=num
             else:
-                x = num + 2*p
+                p2 = 2*p
+                x = num + p2
                 while x<n and (x in Compuestos or (x%30) not in MODULOS):
-                    x += 2*p
+                    x += p2
                 if x<n:
                     Compuestos[x] = p
             #if verbose:print(num, len(Compuestos))
     #else:
         #raise NoEsNumeroNatural("El objeto no representa un número natural")
 
-def sieve_eratosthenes(n:int):
+def sieve_eratosthenes(n:int) -> Iterator[int]:
     """Generador que implementa el sieve de Eratosthenes para encontrar números primos
        menores que n, siempre que n<sys.maxsize"""
     #más rapido pero a cambio de gastar mucha más memoria
@@ -95,11 +100,16 @@ def sieve_eratosthenes(n:int):
 #    else:
 #        raise NoEsNumeroNatural("El objeto no representa un número natural")
 
-def descompocion_en_primos(n:int,*,repeticion=True):
-    """Generador de los factores primos de n, con repetición de acuerdo a la multiplicidad
-       de cada factor primo de n en caso de que asi sea solicitado, que por defecto asi es."""
+def descompocion_en_primos(n:int,*,repeticion:bool=True) -> Iterator[int]:
+    """Generador de los factores primos de n en orden ascendente, con
+       repetición de acuerdo a la multiplicidad de cada factor primo
+       de n en caso de que asi sea solicitado, que por defecto asi es."""
     if n >= 0:
         if n<2:
+            return
+        from .primalidad_test import esPrimo
+        if esPrimo(n):
+            yield n
             return
         primos_test = primos_hasta(n)
         while n!=1:
@@ -117,5 +127,5 @@ def descompocion_en_primos(n:int,*,repeticion=True):
 
 
 
-__all__ = list( x for x in dir() if not (x.startswith("_") or x in __exclude_from_all__))
+__all__ = [ x for x in dir() if not (x.startswith("_") or x in __exclude_from_all__) ]
 del __exclude_from_all__

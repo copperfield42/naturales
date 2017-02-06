@@ -4,24 +4,25 @@ Ofrece variedad de pruevas de primalidad
 """
 
 if __name__ == "__main__" and not __package__:
-    print("idle trick")
     from relative_import_helper import relative_import_helper
     __package__ = relative_import_helper(__file__,1)
     del relative_import_helper
+    print("idle trick")
 
 
 import random, itertools
 from decimal import Decimal
 
-#from ._Naturales      import *
+
 from .errores             import NoEsNumeroNatural
 from .generales           import esCuadradoPerfecto, log
 from .aritmetica_modular  import jacobi_simbol, sonCoprimos, mcd, indicatriz
 from ._secuencias         import sucesiones_de_Lucas
 from .clasificaciones     import esUnaPotencia, esFermatNumber, esProthNumber
 from .combinatoria        import factorial
-from .factorizacion       import factorizacion_ds 
+from .factorizacion       import factorizacion_ds
 
+#import poly
 
 __exclude_from_all__=set(dir())
 
@@ -31,19 +32,19 @@ __exclude_from_all__=set(dir())
 ################################################################################
 
 
-def primalidad_Test_Fermat(n:int,k:int=10,*,todos=False) -> bool:
+def primalidad_Test_Fermat(n:int, k:int=10,*,todos=False) -> bool:
     """Test de primalidad de Fermat
     Dice si un número es un posible primo
     n número a comprobar
     k número de veces a repetir el test, por defecto 10
     todos: repetir la prueba para todos los posibles valores
-    en que tiene sentido la misma.
+    en que tiene sentido en la prueba.
 
     https://en.wikipedia.org/wiki/Fermat_primality_test"""
     if n >= 0 :
         if n>3:
             if todos:
-                return all( pow(a,n-1,n)==1 for a in range(2,n-1))
+                return all( pow(a,n-1,n)==1 for a in range(2,n-1) )
             ran=random.Random()
             for j in range(k):
                 a=ran.randint(2,n-2)
@@ -58,7 +59,7 @@ def primalidad_Test_Fermat(n:int,k:int=10,*,todos=False) -> bool:
 
 def primalidad_Test_Wilson(n:int) -> bool:
     """(n-1)! = -1 (mod n)
-       https://en.wikipedia.org/wiki/Wilson%27s_theorem"""
+       https://en.wikipedia.org/wiki/Wilson%27s_theorem """
     if n>=0:
         if n>1:
             return factorial(n-1,n) == n-1
@@ -84,7 +85,7 @@ def primalidad_Test_Proth(p:int) -> bool:
        https://en.wikipedia.org/wiki/Proth%27s_theorem"""
     if esProthNumber(p):
         for a in range(2,p):
-            if pow(a, (p-1)//2 , p)== p-1:
+            if pow(a, (p-1)//2 , p) == p-1:
                 return True
         return False
     else:
@@ -92,7 +93,7 @@ def primalidad_Test_Proth(p:int) -> bool:
 
 
 
-def esLucasPseudoprimoExtraFuerte(n:int,*,verbose=False) -> bool:
+def esLucasPseudoprimoExtraFuerte(n:int, *, verbose=False) -> bool:
     """Dice si el número es un Pseudo Primo Extra Fuerte de Lucas.
        Estos son los números tales que:
        Sea d,s números tales que d*2^s = n+1 y sean Q=1 y
@@ -168,10 +169,10 @@ def __aks_multiplicative_order(n,r,limite) -> bool:
     if sonCoprimos(n,r):
         temp = 1
         n %= r
-        for k in range(1,limite+1):
+        for k in range(1,round(limite)+2):
             temp = (temp*n)%r
             if temp == 1: # encontre el orden multipicativo k
-                return False #k <= limite
+                return k > limite
         return True #k > limite
     return False
 
@@ -180,9 +181,9 @@ def __aks_find_r(n:int,log_of_n=None,*,verbose=False) -> int:
        sea mayor que el cuadrado del logaritmo de n.
        multiplicative_order(n,r) > log2(n)**2"""
     if not log_of_n:
-        log_of_n = log(2,n)
+        log_of_n = log(n,2)
     maxr = max(3,round(log_of_n**5)) + 1 #lema 4.3 del paper
-    cota = round(log_of_n**2)+1
+    cota = pow(log_of_n,2) #round(log_of_n**2)+1
     if verbose :
         print("Buscando r en [ 2,",maxr,")","cota=",cota)
     for r in range(2, maxr):
@@ -192,11 +193,9 @@ def __aks_find_r(n:int,log_of_n=None,*,verbose=False) -> int:
             print("probandos",r,"se ha escaneado el",100*r/maxr,"%")
     raise RuntimeError("Falla al encontrar el r")
 
-
-
-def primalidad_Test_AKSv2(n:int,*,verbose:bool=False) -> bool:
-    """http://www.cse.iitk.ac.in/users/manindra/algebra/primality_v6.pdf
-       https://en.wikipedia.org/wiki/AKS_primality_test"""
+def __aks_preliminar(n:int,*,verbose:bool=False) -> int:
+    '''Realiza los pasos 1-4 del aks test y regresa el r para el paso 5
+       o un booleano si la prueba ternino en un paso anterior'''
     if n >= 0 :
         if n<2:
             return False
@@ -206,37 +205,69 @@ def primalidad_Test_AKSv2(n:int,*,verbose:bool=False) -> bool:
             return False
         else:
             #checar que no sea una potencia
-            if verbose:print("paso 1")
+            if verbose:print("paso 1: es una potencia?")
             if esUnaPotencia(n):
                 return False
-            if verbose:print("paso 2")
-            log2n = log(2,n)
+            if verbose:print("paso 2: buscar r")
+            log2n = log(n,2)
             r = __aks_find_r(n,log2n,verbose=verbose)
-            if verbose:print("paso 3","mi r=",r)
+            if verbose:print("paso 3: mcd en (1,r]","mi r=",r)
             a = r
             while a>1:
-                #gcd = mcd(a,n)
-                #print("gcd(%d,%d)"%(a,n),"=",gcd)
                 if 1 < mcd(a,n) < n:
                     return False
                 a -= 1
-            if verbose:print("paso 4")
+            if verbose:print("paso 4: n<=r")
             if n <= r:
                 return True
-            if verbose:print("paso 5")
-            techo = int( log2n * Decimal( indicatriz(r) ).sqrt() )
-            a = 1
-            if verbose:print("max",techo)
-            while a <= techo:
-                if pow(a,n,n)-a :#!=0:
-                    return False
-                a += 1
-            if verbose:print("paso 6")
-            return True
+            return r
     else:
         raise NoEsNumeroNatural("El objeto no representa un número natural")
 
 
+def primalidad_Test_AKSv2(n:int,*,verbose:bool=False) -> bool:
+    """http://www.cse.iitk.ac.in/users/manindra/algebra/primality_v6.pdf
+       https://en.wikipedia.org/wiki/AKS_primality_test"""
+    r = __aks_preliminar(n,verbose=verbose)
+    if isinstance(r,bool):
+        return r
+    if verbose:print("paso 5")
+    techo = int( log(n,2) * Decimal( indicatriz(r) ).sqrt() )
+    a = 1
+    if verbose:print("max",techo)
+    while a <= techo:
+        if pow(a,n,n)-a :#!=0:
+            return False
+        a += 1
+    if verbose:print("paso 6")
+    return True
 
-__all__ = list( x for x in dir() if not (x.startswith("_") or x in __exclude_from_all__))
+
+
+def primalidad_Test_AKSv3(n:int,*,verbose:bool=False) -> bool:
+    """http://www.cse.iitk.ac.in/users/manindra/algebra/primality_v6.pdf
+       https://en.wikipedia.org/wiki/AKS_primality_test
+       usando mis polinomios"""
+    r = __aks_preliminar(n,verbose=verbose)
+    if isinstance(r,bool):
+        return r
+    techo = int( log(n,2) * Decimal( indicatriz(r) ).sqrt() )
+    if verbose:print("max",techo)
+    X = poly.Polinomio([0,1])
+    a = poly.Constante('a')
+    R=X**r - 1
+    A= (((X+a)**n)%R)%n
+    B=((X**n +a)%R)%n
+    C = A-B
+    if C.grado>0:
+        raise RuntimeError('El polinomi no se redudo correctamente: '+repr(C))
+    C=C[0]
+    print('por evaluar:',C)
+    return not any( C.eval(i)%n for i in range(1,techo+1))
+    if verbose:print("paso 6")
+    return True
+
+
+
+__all__ = [ x for x in dir() if not (x.startswith("_") or x in __exclude_from_all__) ]
 del __exclude_from_all__

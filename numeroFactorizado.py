@@ -1,31 +1,118 @@
 """ Módulo de Números Naturales
 
-submodulo de numer especiales
+submodulo de numeros especiales
 
 """
 
 if __name__ == "__main__" and not __package__:
-    print("idle trick")
     from relative_import_helper import relative_import_helper
     __package__ = relative_import_helper(__file__,1)
     del relative_import_helper
-    
-    
+    print("idle trick")
+
 import numbers, collections, itertools
 from functools import total_ordering
 
-
-__exclude_from_all__=set(dir())
 
 from .clasificaciones    import esPrimo, esNatural
 from .generales          import productoria
 from .factorizacion      import factorizacion
 
+__all__ = ["NumeroFactorizado"]
+
+#__exclude_from_all__=set(dir())
+
+#@total_ordering
+class NumeroFactorizado(numbers.Number, collections.abc.Mapping):
+
+    __slots__= "_factores", #type dict
+
+    def __getitem__(self,key):
+        return self._factores[key]
+
+    def __len__(self):
+        return len(self._factores)
+
+    def __iter__(self):
+        return iter(self._factores)
+
+    def __repr__(self):
+        return self.__class__.__qualname__ + "( " + ",".join( map( repr, self._factores.items() ) ) +" )"
+        
+    def __str__(self):
+        if self._factores:
+            return " * ".join( "{}**{}".format(p,m) if m>1 else str(p) for p,m in self._factores.items() )
+        return "1"        
+        
+    def __mod__(self,mod):
+        if mod in self._factores:
+            return 0
+        result = 1
+        for p,m in self._factores.items():
+            result = (result*pow(p,m,mod))%mod
+            if not result:
+                break
+        return result%mod
+
+
+
+        
+        
+##
+##    def _cmp(self, otro):
+##        """cmp(x,y):
+##           -1 <-> x<y
+##            0 <-> x==y
+##            1 <-> x>y"""
+##        if isinstance(otro, numbers.Number):
+##            if otro < 1:
+##                return 1
+##            elif otro == 1:
+##                return 0 if not self._factores else 1
+##            else:
+##                n = round(otro)
+##                if n==otro:
+##                    for p,m in self._factores.items():
+##                        while m>1 and n:
+##                            n //= p
+##                            m  -= 1
+##                        if not n:
+##                            break
+##                    if n == 0:
+##                        return -1
+##                    elif n == 1:
+##                        return 0
+##                    return 1                    
+##        return NotImplemented
+##
+##    def __lt__(self,otro):
+##        return NotImplemented
+##
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
 @total_ordering
-class NumeroFactorizado(numbers.Number): #numbers.Integral):
+class _NumeroFactorizado(numbers.Number): #numbers.Integral):
     """Calse para números naturales mayores o iguales a 1
        factorizados en factores primos"""
 
@@ -40,7 +127,7 @@ class NumeroFactorizado(numbers.Number): #numbers.Integral):
                         self.__factores[x] = 1
                 else:
                     raise ValueError("El factor %d no es primo"%x)
-            elif isinstance(x,collections.Sequence) and len(x)==2:
+            elif isinstance(x,collections.abc.Sequence) and len(x)==2:
                 p,m = x
                 if esNatural(p) and esNatural(m) and m>0:
                     if esPrimo(p):
@@ -168,7 +255,7 @@ class NumeroFactorizado(numbers.Number): #numbers.Integral):
     def factores(self):
         resul = {1}
         for p in self.descompocion_en_primos(True):
-            resul.update( [x*p for x in resul] )
+            resul.update( x*p for x in resul )
         return sorted(resul)
 
     def factoresPropios(self):
@@ -248,3 +335,5 @@ class NumeroFactorizado(numbers.Number): #numbers.Integral):
 ##        raise NotImplementedError()
 
 
+#__all__ = [ x for x in dir() if not (x.startswith("_") or x in __exclude_from_all__) ]
+#del __exclude_from_all__
